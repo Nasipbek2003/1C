@@ -1,0 +1,194 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id              String         @id @default(uuid())
+  telegramUserId  String         @unique
+  username        String?
+  firstName       String?
+  phone           String?
+  name            String?
+  c1CustomerId    String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  chatSessions    ChatSession[]
+  orders          Order[]
+  notifications   Notification[]
+  
+  @@index([phone])
+  @@index([c1CustomerId])
+}
+
+model Operator {
+  id            String    @id @default(uuid())
+  username      String    @unique
+  passwordHash  String
+  name          String
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+}
+
+model Product {
+  id            String    @id @default(uuid())
+  c1ProductId   String    @unique
+  name          String
+  price         Decimal   @db.Decimal(10, 2)
+  description   String?   @db.Text
+  category      String?
+  sizes         Json?
+  inventory     Int       @default(0)
+  lastSyncedAt  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  orderItems    OrderItem[]
+  
+  @@index([category])
+  @@index([lastSyncedAt])
+}
+
+enum OrderStatus {
+  NEW
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  orderNumber     String      @unique
+  customerId      String
+  c1OrderId       String?
+  status          OrderStatus @default(NEW)
+  totalAmount     Decimal     @db.Decimal(10, 2)
+  deliveryAddress String
+  deliveryMethod  String
+  paymentMethod   String
+  trackingNumber  String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  customer        Customer      @relation(fields: [customerId], references: [id])
+  items           OrderItem[]
+  notifications   Notification[]
+  
+  @@index([customerId])
+  @@index([status])
+  @@index([c1OrderId])
+}
+
+model OrderItem {
+  id            String   @id @default(uuid())
+  orderId       String
+  productId     String
+  quantity      Int
+  size          String?
+  priceAtOrder  Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now())
+  
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       Product  @relation(fields: [productId], references: [id])
+  
+  @@index([orderId])
+  @@index([productId])
+}
+
+model ChatSession {
+  id              String    @id @default(uuid())
+  customerId      String
+  isActive        Boolean   @default(true)
+  lastActivityAt  DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  closedAt        DateTime?
+  
+  customer        Customer  @relation(fields: [customerId], references: [id])
+  messages        Message[]
+  
+  @@index([customerId])
+  @@index([isActive])
+}
+
+enum SenderType {
+  CUSTOMER
+  OPERATOR
+  BOT
+}
+
+model Message {
+  id            String     @id @default(uuid())
+  chatSessionId String
+  senderId      String
+  senderType    SenderType
+  content       String     @db.Text
+  createdAt     DateTime   @default(now())
+  
+  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+  
+  @@index([chatSessionId])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  ORDER_CONFIRMED
+  ORDER_SHIPPED
+  ORDER_DELIVERED
+  ORDER_CANCELLED
+  CUSTOM
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model Notification {
+  id          String             @id @default(uuid())
+  customerId  String
+  orderId     String?
+  type        NotificationType
+  content     String             @db.Text
+  status      NotificationStatus @default(PENDING)
+  retryCount  Int                @default(0)
+  sentAt      DateTime?
+  createdAt   DateTime           @default(now())
+  
+  customer    Customer  @relation(fields: [customerId], references: [id])
+  order       Order?    @relation(fields: [orderId], references: [id])
+  
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+  DEBUG
+}
+
+model SystemLog {
+  id         String   @id @default(uuid())
+  component  String
+  level      LogLevel
+  errorType  String?
+  message    String   @db.Text
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  
+  @@index([component])
+  @@index([level])
+  @@index([createdAt])
+}

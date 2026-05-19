@@ -1,0 +1,26 @@
+{
+  "name": "customer-communication-automation",
+  "version": "1.0.0",
+  "description": "Система автоматизации клиентских коммуникаций для магазина одежды",
+  "private": true,
+  "workspaces": [
+    "services/telegram-bot",
+    "services/backend-api",
+    "apps/web-interface"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:bot\" \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:bot": "npm run dev --workspace=services/telegram-bot",
+    "dev:api": "npm run dev --workspace=services/backend-api",
+    "dev:web": "npm run dev --workspace=apps/web-interface",
+    "build": "npm run build --workspaces",
+    "db:generate": "npm run db:generate --workspace=services/backend-api",
+    "db:push": "npm run db:push --workspace=services/backend-api",
+    "db:migrate": "npm run db:migrate --workspace=services/backend-api"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  }
+}
