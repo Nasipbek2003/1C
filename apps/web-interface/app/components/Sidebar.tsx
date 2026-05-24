@@ -8,7 +8,8 @@ import {
   Package, 
   ShoppingCart,
   Shield,
-  LogOut
+  LogOut,
+  TrendingUp
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -32,6 +33,7 @@ export default function Sidebar() {
 
   const allMenuItems = [
     { path: '/home', icon: LayoutDashboard, label: 'Главная', roles: ['ADMIN', 'OPERATOR'] },
+    { path: '/statistics', icon: TrendingUp, label: 'Статистика', roles: ['ADMIN', 'OPERATOR'] },
     { path: '/customers', icon: Users, label: 'Клиенты', roles: ['ADMIN', 'OPERATOR'] },
     { path: '/products', icon: Package, label: 'Товары', roles: ['ADMIN', 'OPERATOR'] },
     { path: '/orders', icon: ShoppingCart, label: 'Заказы', roles: ['ADMIN', 'OPERATOR'] },

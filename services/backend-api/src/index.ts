@@ -15,6 +15,7 @@ import { messagesRouter } from './routes/messages';
 import { notificationsRouter } from './routes/notifications';
 import { publicRouter } from './routes/public';
 import { operatorsRouter } from './routes/operators';
+import statisticsRouter from './routes/statistics';
 import { setupWebSocket } from './websocket';
 
 // Load .env from project root
@@ -60,6 +61,7 @@ app.use('/api/chat-sessions', chatSessionsRouter);
 app.use('/api/messages', messagesRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/operators', operatorsRouter);
+app.use('/api/statistics', statisticsRouter);
 
 // WebSocket setup
 setupWebSocket(io);

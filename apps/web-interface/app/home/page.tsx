@@ -158,17 +158,27 @@ export default function HomePage() {
                     <h4 className="text-lg font-semibold text-gray-800">
                       {session.customer.firstName || session.customer.username || 'Клиент'}
                     </h4>
-                    <p className="text-sm text-gray-500">
-                      ID: {session.customer.id.substring(0, 8)}...
-                    </p>
+                    {session.customer.username && (
+                      <p className="text-sm text-gray-500">
+                        @{session.customer.username}
+                      </p>
+                    )}
+                    {session.customer.phone && (
+                      <p className="text-sm text-gray-500">
+                        📱 {session.customer.phone}
+                      </p>
+                    )}
                   </div>
-                  <span className="px-2 py-1 bg-slate-700 text-white text-xs font-medium rounded">
+                  <span className="px-2 py-1 bg-emerald-600 text-white text-xs font-medium rounded">
                     Активен
                   </span>
                 </div>
 
                 <div className="mb-4">
                   <p className="text-sm text-gray-600">
+                    Последняя активность:
+                  </p>
+                  <p className="text-sm text-gray-800 font-medium">
                     {new Date(session.lastActivityAt).toLocaleString('ru-RU', {
                       day: '2-digit',
                       month: '2-digit',
@@ -180,11 +190,18 @@ export default function HomePage() {
                 </div>
 
                 <button
-                  onClick={() => router.push(`/chat/${session.id}`)}
+                  onClick={() => {
+                    const username = session.customer.username;
+                    if (username) {
+                      window.open(`https://t.me/${username}`, '_blank');
+                    } else {
+                      alert('Username клиента не найден');
+                    }
+                  }}
                   className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg font-medium transition-colors"
                 >
                   <MessageSquare className="w-4 h-4" />
-                  <span>Открыть чат</span>
+                  <span>Открыть в Telegram</span>
                 </button>
               </div>
             ))}
