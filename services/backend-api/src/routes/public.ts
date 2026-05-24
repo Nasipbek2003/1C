@@ -49,6 +49,22 @@ router.get('/customers/telegram/:telegramUserId', asyncHandler(async (req, res) 
   res.json({ customer });
 }));
 
+// Update customer
+router.put('/customers/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { name, phone } = req.body;
+
+  const customer = await prisma.customer.update({
+    where: { id },
+    data: {
+      name: name || undefined,
+      phone: phone || undefined
+    }
+  });
+
+  res.json({ customer });
+}));
+
 // Create chat session
 router.post('/chat-sessions', asyncHandler(async (req, res) => {
   const { customerId } = req.body;
@@ -167,6 +183,77 @@ router.get('/products/:id', asyncHandler(async (req, res) => {
   }
 
   res.json({ product });
+}));
+
+// Create order (public - for Telegram bot)
+const createOrderSchema = z.object({
+  customerId: z.string().uuid(),
+  items: z.array(z.object({
+    productId: z.string().uuid(),
+    quantity: z.number().int().positive(),
+    size: z.string().optional().nullable()
+  })),
+  deliveryAddress: z.string().min(1),
+  deliveryMethod: z.string().min(1),
+  paymentMethod: z.string().min(1)
+});
+
+router.post('/orders', asyncHandler(async (req, res) => {
+  const data = createOrderSchema.parse(req.body);
+
+  // Get products to calculate total
+  const productIds = data.items.map(item => item.productId);
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds } }
+  });
+
+  // Calculate total amount
+  let totalAmount = 0;
+  const orderItems = data.items.map(item => {
+    const product = products.find(p => p.id === item.productId);
+    if (!product) {
+      throw new Error(`Product ${item.productId} not found`);
+    }
+    const itemTotal = parseFloat(product.price.toString()) * item.quantity;
+    totalAmount += itemTotal;
+
+    return {
+      productId: item.productId,
+      quantity: item.quantity,
+      size: item.size || null,
+      priceAtOrder: product.price
+    };
+  });
+
+  // Generate order number
+  const orderCount = await prisma.order.count();
+  const orderNumber = `ORD-${String(orderCount + 1).padStart(6, '0')}`;
+
+  // Create order
+  const order = await prisma.order.create({
+    data: {
+      orderNumber,
+      customerId: data.customerId,
+      totalAmount,
+      deliveryAddress: data.deliveryAddress,
+      deliveryMethod: data.deliveryMethod,
+      paymentMethod: data.paymentMethod,
+      status: 'NEW',
+      items: {
+        create: orderItems
+      }
+    },
+    include: {
+      items: {
+        include: {
+          product: true
+        }
+      },
+      customer: true
+    }
+  });
+
+  res.status(201).json({ order });
 }));
 
 export { router as publicRouter };

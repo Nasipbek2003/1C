@@ -99,7 +99,7 @@ export default function HomePage() {
       <Sidebar />
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto ml-64">
         <div className="bg-white border-b border-gray-200 px-8 py-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-800">Панель оператора</h2>

@@ -39,6 +39,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -139,6 +140,19 @@ export default function ProductsPage() {
     }
   };
 
+  const filteredProducts = products.filter(product => {
+    if (!searchQuery) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      product.name.toLowerCase().includes(query) ||
+      product.description?.toLowerCase().includes(query) ||
+      product.category?.toLowerCase().includes(query) ||
+      product.colors?.some(color => color.toLowerCase().includes(query)) ||
+      product.sizes?.some(size => size.toLowerCase().includes(query))
+    );
+  });
+
   if (loading) {
     return (
       <div className="flex min-h-screen bg-gray-100">
@@ -155,7 +169,7 @@ export default function ProductsPage() {
       <Sidebar />
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto ml-64">
         <div className="bg-white border-b border-gray-200 px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
@@ -177,6 +191,33 @@ export default function ProductsPage() {
         </div>
 
         <div className="p-8">
+        {/* Search */}
+        <div className="mb-6">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="🔍 Поиск по названию, категории, цвету, размеру..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 text-base"
+            />
+            <Package className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <p className="mt-2 text-sm text-gray-600">
+              Найдено товаров: <span className="font-semibold">{filteredProducts.length}</span>
+            </p>
+          )}
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
@@ -217,7 +258,7 @@ export default function ProductsPage() {
 
         {/* Products grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <div key={product.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group">
               {/* Product Image */}
               <div className="relative h-56 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
@@ -304,7 +345,7 @@ export default function ProductsPage() {
           ))}
         </div>
 
-        {products.length === 0 && (
+        {filteredProducts.length === 0 && !searchQuery && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
             <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600 text-lg font-medium">Нет товаров</p>
@@ -313,16 +354,35 @@ export default function ProductsPage() {
             </p>
           </div>
         )}
+
+        {filteredProducts.length === 0 && searchQuery && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+            <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-600 text-lg font-medium">Товары не найдены</p>
+            <p className="text-gray-500 text-sm mt-2">
+              По запросу "{searchQuery}" ничего не найдено. Попробуйте изменить поисковый запрос.
+            </p>
+            <button
+              onClick={() => setSearchQuery('')}
+              className="mt-4 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800"
+            >
+              Сбросить поиск
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              {editingProduct ? 'Редактировать товар' : 'Добавить товар'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="bg-white rounded-lg max-w-lg w-full max-h-[85vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">
+                {editingProduct ? 'Редактировать товар' : 'Добавить товар'}
+              </h2>
+            </div>
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+              <div className="overflow-y-auto px-6 py-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Название *
@@ -363,36 +423,72 @@ export default function ProductsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Категория
                 </label>
-                <input
-                  type="text"
+                <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                />
+                >
+                  <option value="">Выберите категорию</option>
+                  <option value="Футболки">Футболки</option>
+                  <option value="Рубашки">Рубашки</option>
+                  <option value="Брюки">Брюки</option>
+                  <option value="Джинсы">Джинсы</option>
+                  <option value="Куртки">Куртки</option>
+                  <option value="Платья">Платья</option>
+                  <option value="Юбки">Юбки</option>
+                  <option value="Обувь">Обувь</option>
+                  <option value="Аксессуары">Аксессуары</option>
+                </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Размеры (через запятую)
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Размеры
                 </label>
-                <input
-                  type="text"
-                  placeholder="S, M, L, XL"
-                  value={formData.sizes}
-                  onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                />
+                <div className="grid grid-cols-4 gap-2">
+                  {['XS', 'S', 'M', 'L', 'XL', 'XXL', '38', '40', '42', '44', '46', '48'].map((size) => (
+                    <label key={size} className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.sizes.split(',').map(s => s.trim()).includes(size)}
+                        onChange={(e) => {
+                          const currentSizes = formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : [];
+                          if (e.target.checked) {
+                            setFormData({ ...formData, sizes: [...currentSizes, size].join(', ') });
+                          } else {
+                            setFormData({ ...formData, sizes: currentSizes.filter(s => s !== size).join(', ') });
+                          }
+                        }}
+                        className="rounded border-gray-300 text-slate-600 focus:ring-slate-500"
+                      />
+                      <span className="text-sm">{size}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Цвета (через запятую)
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Цвета
                 </label>
-                <input
-                  type="text"
-                  placeholder="Черный, Белый, Синий"
-                  value={formData.colors}
-                  onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                />
+                <div className="grid grid-cols-2 gap-2">
+                  {['Черный', 'Белый', 'Серый', 'Синий', 'Красный', 'Зеленый', 'Желтый', 'Розовый', 'Коричневый', 'Бежевый'].map((color) => (
+                    <label key={color} className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.colors.split(',').map(c => c.trim()).includes(color)}
+                        onChange={(e) => {
+                          const currentColors = formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c) : [];
+                          if (e.target.checked) {
+                            setFormData({ ...formData, colors: [...currentColors, color].join(', ') });
+                          } else {
+                            setFormData({ ...formData, colors: currentColors.filter(c => c !== color).join(', ') });
+                          }
+                        }}
+                        className="rounded border-gray-300 text-slate-600 focus:ring-slate-500"
+                      />
+                      <span className="text-sm">{color}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -461,7 +557,8 @@ export default function ProductsPage() {
                   className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm"
                 />
               </div>
-              <div className="flex space-x-3 pt-4">
+              </div>
+              <div className="flex space-x-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
                 <button
                   type="button"
                   onClick={() => {

@@ -42,7 +42,7 @@ export default function Sidebar() {
   const menuItems = allMenuItems.filter(item => item.roles.includes(operatorRole));
 
   return (
-    <div className="w-64 bg-gray-900 text-white flex flex-col">
+    <div className="w-64 bg-gray-900 text-white flex flex-col fixed left-0 top-0 bottom-0 z-40">
       <div className="p-6 border-b border-gray-800">
         <h1 className="text-xl font-bold">Панель управления</h1>
         <p className="text-sm text-gray-400 mt-1">

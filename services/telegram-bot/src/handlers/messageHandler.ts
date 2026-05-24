@@ -10,15 +10,34 @@ const FAQ_RESPONSES: Record<string, string> = {
   'возврат': '↩️ Возврат и обмен возможны в течение 14 дней с момента получения'
 };
 
+// Keywords that indicate user is placing an order
+const ORDER_KEYWORDS = ['размер', 'цвет', 'адрес', 'доставка', 'телефон', 'имя', 'оплата', 'заказ'];
+
 export const handleMessage = async (bot: TelegramBot, msg: TelegramBot.Message) => {
   // Skip commands
   if (msg.text?.startsWith('/')) {
     return;
   }
 
+  // Skip if already handled by command handler
+  if ((msg as any).handled) {
+    return;
+  }
+
   const chatId = msg.chat.id;
   const userId = msg.from?.id.toString();
   const text = msg.text?.toLowerCase() || '';
+
+  // Skip button presses (they are handled in commands)
+  const buttonTexts = ['🔍 Поиск', '🏷️ Категории', '📦 Мои заказы', '❓ Помощь', '📞 Связаться с оператором'];
+  if (buttonTexts.includes(msg.text || '')) {
+    return;
+  }
+
+  // Skip if message is too short (likely handled as search in commands)
+  if (text.length < 3) {
+    return;
+  }
 
   try {
     // Get or create customer
@@ -67,11 +86,20 @@ export const handleMessage = async (bot: TelegramBot, msg: TelegramBot.Message) 
       }
     }
 
-    // If no FAQ match, notify operator
+    // Don't send confirmation for search queries or order-related messages
+    // Only send for actual messages to operator
     if (!responded) {
+      // Check if this looks like a search query (single word or short phrase)
+      const words = text.split(' ');
+      if (words.length <= 3 && !ORDER_KEYWORDS.some(keyword => text.includes(keyword))) {
+        // Likely a search query, don't send confirmation
+        return;
+      }
+
+      // This is a message to operator
       await bot.sendMessage(
         chatId,
-        'Спасибо за ваше сообщение! Оператор скоро ответит вам.'
+        '✅ Ваше сообщение отправлено оператору. Ожидайте ответа.'
       );
     }
   } catch (error) {
