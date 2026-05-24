@@ -28,13 +28,19 @@ model Customer {
   @@index([c1CustomerId])
 }
 
+enum OperatorRole {
+  ADMIN
+  OPERATOR
+}
+
 model Operator {
-  id            String    @id @default(uuid())
-  username      String    @unique
+  id            String        @id @default(uuid())
+  username      String        @unique
   passwordHash  String
   name          String
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
+  role          OperatorRole  @default(OPERATOR)
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
 }
 
 model Product {
@@ -45,7 +51,9 @@ model Product {
   description   String?   @db.Text
   category      String?
   sizes         Json?
+  colors        Json?
   inventory     Int       @default(0)
+  imageUrl      String?
   lastSyncedAt  DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

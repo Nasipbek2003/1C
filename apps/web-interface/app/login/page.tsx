@@ -18,18 +18,39 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
 
+    console.log('🔐 Попытка входа:', { username, passwordLength: password.length })
+
     try {
       const response = await axios.post(`${API_URL}/api/auth/login`, {
-        username,
-        password
+        username: username.trim(),
+        password: password
       })
+
+      console.log('✅ Вход успешен:', response.data.operator)
 
       localStorage.setItem('token', response.data.token)
       localStorage.setItem('operator', JSON.stringify(response.data.operator))
       
       router.push('/home')
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Ошибка входа')
+      console.error('❌ Ошибка входа:', err)
+      console.error('Статус:', err.response?.status)
+      console.error('Данные:', err.response?.data)
+      
+      if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
+        setError('Не удается подключиться к серверу. Убедитесь, что Backend API запущен на порту 3001.')
+      } else if (err.response?.status === 401) {
+        setError('Неверное имя пользователя или пароль')
+      } else if (err.response?.status === 500) {
+        const errorMsg = err.response?.data?.error?.message || ''
+        if (errorMsg.includes('JWT')) {
+          setError('Ошибка конфигурации сервера (JWT). Обратитесь к администратору.')
+        } else {
+          setError('Ошибка сервера. Попробуйте позже.')
+        }
+      } else {
+        setError(err.response?.data?.error?.message || 'Ошибка входа. Попробуйте позже.')
+      }
     } finally {
       setLoading(false)
     }
@@ -85,18 +106,22 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full disabled:opacity-50"
+                className="bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
               >
-                {loading ? 'Вход...' : 'Войти'}
+                {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Вход...
+                  </>
+                ) : (
+                  'Войти'
+                )}
               </button>
             </div>
           </form>
-
-          <div className="mt-6 text-center text-sm text-gray-600">
-            <p>Тестовые учетные данные:</p>
-            <p className="mt-1">admin / admin123</p>
-            <p>operator / operator123</p>
-          </div>
         </div>
       </div>
     </div>

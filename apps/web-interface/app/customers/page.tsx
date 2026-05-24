@@ -3,6 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { 
+  Users, 
+  Search,
+  Phone,
+  UserCheck,
+  ArrowRight
+} from 'lucide-react';
+import Sidebar from '../components/Sidebar';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -59,72 +68,20 @@ export default function CustomersPage() {
     );
   });
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('operator');
-    router.push('/login');
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Загрузка...</div>
+      <div className="flex min-h-screen bg-gray-100">
+        <Sidebar />
+        <div className="flex-1">
+          <LoadingSpinner />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-gray-900 text-white flex flex-col">
-        <div className="p-6 border-b border-gray-800">
-          <h1 className="text-xl font-bold">Панель управления</h1>
-          <p className="text-sm text-gray-400 mt-1">Оператор</p>
-        </div>
-
-        <nav className="flex-1 p-4">
-          <button
-            onClick={() => router.push('/home')}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-300 hover:text-white mb-2"
-          >
-            <span className="text-xl">📊</span>
-            <span>Главная</span>
-          </button>
-          
-          <button
-            onClick={() => router.push('/customers')}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg bg-gray-800 text-white mb-2"
-          >
-            <span className="text-xl">👥</span>
-            <span>Клиенты</span>
-          </button>
-
-          <button
-            onClick={() => router.push('/products')}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-300 hover:text-white mb-2"
-          >
-            <span className="text-xl">📦</span>
-            <span>Товары</span>
-          </button>
-
-          <button
-            onClick={() => router.push('/orders')}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-300 hover:text-white mb-2"
-          >
-            <span className="text-xl">🛒</span>
-            <span>Заказы</span>
-          </button>
-        </nav>
-
-        <div className="p-4 border-t border-gray-800">
-          <button
-            onClick={logout}
-            className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
-          >
-            Выйти
-          </button>
-        </div>
-      </div>
+      <Sidebar />
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
@@ -136,29 +93,41 @@ export default function CustomersPage() {
         <div className="p-8">
         {/* Search */}
         <div className="mb-6">
-          <input
-            type="text"
-            placeholder="Поиск по имени, телефону, username..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Поиск по имени, телефону, username..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">Всего клиентов</div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-gray-600">Всего клиентов</div>
+              <Users className="w-5 h-5 text-indigo-600" />
+            </div>
             <div className="text-3xl font-bold text-gray-900">{customers.length}</div>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">С телефоном</div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-gray-600">С телефоном</div>
+              <Phone className="w-5 h-5 text-emerald-600" />
+            </div>
             <div className="text-3xl font-bold text-gray-900">
               {customers.filter(c => c.phone).length}
             </div>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">Новых за сегодня</div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-gray-600">Новых за сегодня</div>
+              <UserCheck className="w-5 h-5 text-violet-600" />
+            </div>
             <div className="text-3xl font-bold text-gray-900">
               {customers.filter(c => {
                 const today = new Date().toDateString();
@@ -225,9 +194,10 @@ export default function CustomersPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <button
                       onClick={() => router.push(`/customers/${customer.id}`)}
-                      className="text-blue-600 hover:text-blue-900 font-medium"
+                      className="flex items-center space-x-1 text-slate-700 hover:text-slate-900 font-medium transition-colors"
                     >
-                      Подробнее →
+                      <span>Подробнее</span>
+                      <ArrowRight className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
@@ -241,6 +211,7 @@ export default function CustomersPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

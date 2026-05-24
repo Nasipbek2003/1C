@@ -3,6 +3,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
+import path from 'path';
 import { logger } from './utils/logger';
 import { errorHandler } from './middleware/errorHandler';
 import { authRouter } from './routes/auth';
@@ -13,9 +14,11 @@ import { chatSessionsRouter } from './routes/chatSessions';
 import { messagesRouter } from './routes/messages';
 import { notificationsRouter } from './routes/notifications';
 import { publicRouter } from './routes/public';
+import { operatorsRouter } from './routes/operators';
 import { setupWebSocket } from './websocket';
 
-dotenv.config();
+// Load .env from project root
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const app = express();
 const httpServer = createServer(app);
@@ -56,6 +59,7 @@ app.use('/api/orders', ordersRouter);
 app.use('/api/chat-sessions', chatSessionsRouter);
 app.use('/api/messages', messagesRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/operators', operatorsRouter);
 
 // WebSocket setup
 setupWebSocket(io);

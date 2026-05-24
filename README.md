@@ -1,289 +1,269 @@
-# Система автоматизации клиентских коммуникаций
+# Система управления магазином одежды
 
-Система для автоматизации коммуникаций с клиентами магазина одежды через Telegram-бота с интеграцией 1С.
+Полнофункциональная система для управления магазином одежды с интеграцией Telegram-бота, панелью оператора и синхронизацией с 1С.
 
-## Архитектура
+## 🚀 Возможности
 
-Система состоит из следующих компонентов:
+### Панель оператора
+- 👥 Управление клиентами
+- 📦 Управление товарами (с загрузкой изображений)
+- 🛒 Управление заказами
+- 💬 Чат с клиентами в реальном времени
+- 👨‍💼 Управление операторами (только для администраторов)
+- 📊 Дашборд со статистикой
 
-- **Backend API Service** (Node.js + Express) - REST API и WebSocket сервер
-- **Telegram Bot Service** (Node.js + node-telegram-bot-api) - Telegram бот для клиентов
-- **1C Integration Service** (Node.js) - Синхронизация с системой 1С
-- **Web Interface** (Next.js + React) - Веб-интерфейс для операторов
-- **PostgreSQL Database** (Neon DB) - Хранилище данных
+### Telegram бот
+- 🤖 Автоматизированное общение с клиентами
+- 🛍️ Просмотр каталога товаров
+- 📝 Оформление заказов
+- 📞 Связь с оператором
 
-## Требования
+### Интеграция с 1С
+- 🔄 Синхронизация товаров
+- 👥 Синхронизация клиентов
+- 📋 Синхронизация заказов
+
+## 📋 Требования
 
 - Node.js 18+
-- npm или yarn
-- PostgreSQL (используется Neon DB)
+- PostgreSQL (используется Neon Database)
 - Telegram Bot Token
+- Cloudinary аккаунт (для загрузки изображений)
 
-## Установка
+## 🛠️ Установка
 
-### 1. Клонирование и установка зависимостей
+### 1. Клонирование репозитория
 
 ```bash
-# Установка зависимостей для всех сервисов
-npm install
-
-# Установка зависимостей в каждом workspace
-npm install --workspaces
+git clone <repository-url>
+cd <project-folder>
 ```
 
-### 2. Настройка переменных окружения
+### 2. Установка зависимостей
 
-Скопируйте `.env.example` в `.env` и заполните необходимые значения:
+```bash
+npm install
+```
+
+### 3. Настройка переменных окружения
+
+Скопируйте `.env.example` в `.env` и заполните необходимые данные:
 
 ```bash
 cp .env.example .env
 ```
 
-Обязательные переменные:
+Основные переменные:
+- `DATABASE_URL` - строка подключения к PostgreSQL
+- `TELEGRAM_BOT_TOKEN` - токен Telegram бота
+- `JWT_SECRET` - секретный ключ для JWT
+- `NEXT_PUBLIC_CLOUDINARY_*` - настройки Cloudinary
 
-```env
-# Database
-DATABASE_URL="postgresql://neondb_owner:npg_XVKeSlH9Q3Pj@ep-raspy-union-ap8x34an-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-
-# Telegram Bot
-TELEGRAM_BOT_TOKEN="your_telegram_bot_token_here"
-
-# JWT Secret
-JWT_SECRET="your_secure_jwt_secret_here"
-
-# 1C Integration (опционально)
-C1_API_URL="https://your-1c-system.com/api"
-C1_API_USERNAME="1c_api_user"
-C1_API_PASSWORD="1c_api_password"
-```
-
-### 3. Инициализация базы данных
+### 4. Инициализация базы данных
 
 ```bash
-# Генерация Prisma Client
-npm run db:generate
+# Применить миграции
+cd services/backend-api
+npx prisma migrate deploy
+npx prisma generate
 
-# Применение схемы к базе данных
-npm run db:push
+# Заполнить тестовыми данными (опционально)
+node ../../seed-test-data.js
 ```
 
-### 4. Создание первого оператора
-
-Подключитесь к базе данных и создайте оператора:
-
-```sql
-INSERT INTO "Operator" (id, username, "passwordHash", name, "isActive", "createdAt")
-VALUES (
-  gen_random_uuid(),
-  'admin',
-  '$2b$10$YourHashedPasswordHere', -- используйте bcrypt для хеширования
-  'Администратор',
-  true,
-  NOW()
-);
-```
-
-Или используйте Node.js скрипт для создания хеша пароля:
-
-```javascript
-const bcrypt = require('bcrypt');
-const password = 'your_password';
-bcrypt.hash(password, 10).then(hash => console.log(hash));
-```
-
-## Запуск
-
-### Режим разработки
-
-Запустить все сервисы одновременно:
+### 5. Создание операторов
 
 ```bash
+# Проверить существующих операторов
+node check-operator-login.js
+
+# Установить роль администратора
+node set-admin-role.js
+```
+
+## 🚀 Запуск
+
+### Запуск всей системы
+
+```bash
+# С Telegram ботом
+start.bat
+
+# Без Telegram бота
+start-without-bot.bat
+```
+
+### Запуск отдельных сервисов
+
+```bash
+# Backend API (порт 3001)
+cd services/backend-api
+npm run dev
+
+# Web Interface (порт 3000)
+cd apps/web-interface
+npm run dev
+
+# Telegram Bot (порт 3002)
+cd services/telegram-bot
+npm run dev
+
+# 1C Integration (порт 3003)
+cd services/1c-integration
 npm run dev
 ```
 
-Или запустить сервисы по отдельности:
+## 🔐 Доступ к системе
 
-```bash
-# Backend API
-npm run dev:api
+### Панель оператора
+URL: http://localhost:3000/login
 
-# Telegram Bot
-npm run dev:bot
+**Администратор:**
+- Логин: `admin`
+- Пароль: `admin123`
+- Доступ: Все функции включая управление операторами
 
-# 1C Integration
-npm run dev:1c
+**Оператор:**
+- Логин: `operator`
+- Пароль: `operator123`
+- Доступ: Все функции кроме управления операторами
 
-# Web Interface
-npm run dev:web
-```
-
-### Режим production
-
-```bash
-# Сборка всех сервисов
-npm run build
-
-# Запуск каждого сервиса
-cd services/backend-api && npm start
-cd services/telegram-bot && npm start
-cd services/1c-integration && npm start
-cd apps/web-interface && npm start
-```
-
-## Порты по умолчанию
-
-- Backend API: `3001`
-- Telegram Bot Service: `3002`
-- 1C Integration Service: `3003`
-- Web Interface: `3000`
-
-## API Endpoints
-
-### Backend API (http://localhost:3001)
-
-#### Аутентификация
-- `POST /api/auth/login` - Вход оператора
-- `POST /api/auth/logout` - Выход
-- `GET /api/auth/me` - Получить текущего пользователя
-
-#### Клиенты
-- `GET /api/customers` - Список клиентов
-- `GET /api/customers/:id` - Информация о клиенте
-- `POST /api/customers` - Создать клиента
-- `PUT /api/customers/:id` - Обновить клиента
-
-#### Товары
-- `GET /api/products` - Список товаров
-- `GET /api/products/:id` - Информация о товаре
-
-#### Заказы
-- `GET /api/orders` - Список заказов
-- `GET /api/orders/:id` - Информация о заказе
-- `POST /api/orders` - Создать заказ
-- `PUT /api/orders/:id/status` - Обновить статус заказа
-
-#### Чат-сессии
-- `GET /api/chat-sessions` - Список чат-сессий
-- `GET /api/chat-sessions/:id/messages` - Сообщения сессии
-
-#### Сообщения
-- `POST /api/messages` - Отправить сообщение
-
-#### Уведомления
-- `GET /api/notifications` - Список уведомлений
-- `POST /api/notifications` - Создать уведомление
-
-### Telegram Bot Service (http://localhost:3002)
-
-- `POST /api/send-message` - Отправить сообщение клиенту
-- `POST /api/send-notification` - Отправить уведомление
-
-### 1C Integration Service (http://localhost:3003)
-
-- `POST /api/1c/sync-products` - Синхронизировать товары
-- `POST /api/1c/sync-customers` - Синхронизировать клиентов
-- `POST /api/1c/orders` - Отправить заказ в 1С
-- `GET /api/1c/orders/:orderNumber/status` - Получить статус заказа
-
-## Telegram Bot Команды
-
-- `/start` - Начать работу с ботом
-- `/catalog` - Просмотр каталога товаров
-- `/orders` - Мои заказы
-- `/help` - Справка
-
-## Структура проекта
+## 📁 Структура проекта
 
 ```
 .
-├── services/
-│   ├── backend-api/          # Backend API Service
-│   │   ├── src/
-│   │   │   ├── routes/       # API маршруты
-│   │   │   ├── middleware/   # Middleware
-│   │   │   ├── utils/        # Утилиты
-│   │   │   └── index.ts      # Точка входа
-│   │   └── prisma/
-│   │       └── schema.prisma # Схема базы данных
-│   ├── telegram-bot/         # Telegram Bot Service
-│   │   └── src/
-│   │       ├── commands/     # Команды бота
-│   │       ├── handlers/     # Обработчики
-│   │       └── index.ts
-│   └── 1c-integration/       # 1C Integration Service
-│       └── src/
-│           ├── sync/         # Синхронизация
-│           ├── api/          # API интеграции
-│           ├── client/       # 1C клиент
-│           └── index.ts
 ├── apps/
-│   └── web-interface/        # Web Interface (Next.js)
-├── .kiro/
-│   └── specs/                # Спецификации проекта
-└── package.json
+│   └── web-interface/          # Next.js веб-интерфейс
+│       ├── app/
+│       │   ├── components/     # React компоненты
+│       │   ├── customers/      # Страница клиентов
+│       │   ├── products/       # Страница товаров
+│       │   ├── orders/         # Страница заказов
+│       │   ├── operators/      # Страница операторов
+│       │   ├── chat/           # Страница чата
+│       │   └── login/          # Страница входа
+│       └── package.json
+│
+├── services/
+│   ├── backend-api/            # Express.js API
+│   │   ├── src/
+│   │   │   ├── routes/         # API роуты
+│   │   │   ├── middleware/     # Middleware (auth, errors)
+│   │   │   └── utils/          # Утилиты
+│   │   └── prisma/
+│   │       ├── schema.prisma   # Схема базы данных
+│   │       └── migrations/     # Миграции
+│   │
+│   ├── telegram-bot/           # Telegram бот
+│   │   └── src/
+│   │       ├── commands/       # Команды бота
+│   │       └── handlers/       # Обработчики
+│   │
+│   └── 1c-integration/         # Интеграция с 1С
+│       └── src/
+│           ├── api/            # API endpoints
+│           ├── client/         # 1С клиент
+│           └── sync/           # Синхронизация
+│
+├── .env                        # Переменные окружения
+├── package.json                # Зависимости проекта
+├── start.bat                   # Запуск всей системы
+└── start-without-bot.bat       # Запуск без бота
 ```
 
-## Разработка
+## 🎨 Особенности интерфейса
 
-### Просмотр базы данных
+### Система ролей
+- **ADMIN** - полный доступ ко всем функциям
+- **OPERATOR** - доступ без управления операторами
+
+### Анимации загрузки
+- Красивые анимированные спиннеры на всех страницах
+- Анимированная кнопка входа
+- Три варианта анимации (default, dots, pulse)
+
+### Адаптивный дизайн
+- Полностью адаптивный интерфейс
+- Поддержка мобильных устройств
+- Современный UI с Tailwind CSS
+
+## 🔧 Полезные скрипты
 
 ```bash
-npm run db:studio
+# Проверить операторов
+node check-operator-login.js
+
+# Установить роль администратора
+node set-admin-role.js
+
+# Заполнить тестовыми данными
+node seed-test-data.js
+
+# Проверить сервисы
+check-services.bat
+
+# Инициализировать базу данных
+init-database.bat
 ```
 
-Откроется Prisma Studio на http://localhost:5555
+## 📚 Документация
 
-### Миграции базы данных
+- [QUICKSTART.md](QUICKSTART.md) - Быстрый старт
+- [СХЕМА_ЗАПУСКА.md](СХЕМА_ЗАПУСКА.md) - Схема запуска системы
+- [ИЗМЕНЕНИЯ_РОЛИ.md](ИЗМЕНЕНИЯ_РОЛИ.md) - Информация о системе ролей
+- [АНИМАЦИИ_ЗАГРУЗКИ.md](АНИМАЦИИ_ЗАГРУЗКИ.md) - Документация по анимациям
+- [ИНСТРУКЦИЯ_ЗАПУСКА.md](ИНСТРУКЦИЯ_ЗАПУСКА.md) - Подробная инструкция
+- [📖_ДОКУМЕНТАЦИЯ.md](📖_ДОКУМЕНТАЦИЯ.md) - Полная документация
 
+## 🐛 Решение проблем
+
+### Backend API не запускается
+- Проверьте что PostgreSQL доступен
+- Проверьте `DATABASE_URL` в `.env`
+- Убедитесь что порт 3001 свободен
+
+### Web Interface не подключается к API
+- Убедитесь что Backend API запущен
+- Проверьте `NEXT_PUBLIC_API_URL` в `.env`
+
+### Telegram бот не отвечает
+- Проверьте `TELEGRAM_BOT_TOKEN` в `.env`
+- Убедитесь что Backend API запущен
+
+### Ошибка при входе
+- Проверьте что операторы созданы: `node check-operator-login.js`
+- Убедитесь что `JWT_SECRET` установлен в `.env`
+
+## 🔒 Безопасность
+
+- JWT токены для аутентификации
+- Bcrypt для хеширования паролей
+- Middleware для проверки прав доступа
+- Защита API endpoints по ролям
+
+## 🚀 Развертывание
+
+### Production
+
+1. Установите переменные окружения для production
+2. Соберите проекты:
 ```bash
-# Создать миграцию
-npm run db:migrate
+cd apps/web-interface
+npm run build
 
-# Применить схему без миграции
-npm run db:push
+cd ../../services/backend-api
+npm run build
 ```
 
-## Интеграция с 1С
+3. Запустите в production режиме:
+```bash
+NODE_ENV=production npm start
+```
 
-Система ожидает следующие API endpoints от системы 1С:
+## 📝 Лицензия
 
-- `GET /api/products` - Получить список товаров
-- `GET /api/customers` - Получить список клиентов
-- `POST /api/orders` - Создать заказ
-- `GET /api/orders/:orderId` - Получить статус заказа
+Proprietary - Все права защищены
 
-Формат данных описан в документе `design.md`.
+## 👥 Поддержка
 
-## Мониторинг и логи
-
-Все ошибки и события логируются в таблицу `SystemLog` в базе данных.
-
-Компоненты логирования:
-- `backend-api` - Backend API Service
-- `telegram-bot` - Telegram Bot Service
-- `1c-integration` - 1C Integration Service
-- `prisma` - Database queries
-
-## Troubleshooting
-
-### Telegram Bot не отвечает
-
-1. Проверьте `TELEGRAM_BOT_TOKEN` в `.env`
-2. Убедитесь, что бот запущен: `npm run dev:bot`
-3. Проверьте логи сервиса
-
-### Ошибки подключения к базе данных
-
-1. Проверьте `DATABASE_URL` в `.env`
-2. Убедитесь, что база данных доступна
-3. Выполните `npm run db:push`
-
-### 1С интеграция не работает
-
-1. Проверьте `C1_API_URL`, `C1_API_USERNAME`, `C1_API_PASSWORD`
-2. Убедитесь, что 1С API доступен
-3. Система работает в offline режиме при недоступности 1С
-
-## Лицензия
-
-Proprietary
+При возникновении проблем проверьте логи в консоли где запущены сервисы.

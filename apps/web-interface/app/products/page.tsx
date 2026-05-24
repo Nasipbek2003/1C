@@ -3,6 +3,20 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { CldUploadWidget } from 'next-cloudinary';
+import { 
+  Package, 
+  Plus,
+  Edit,
+  Trash2,
+  TrendingUp,
+  AlertCircle,
+  DollarSign,
+  Upload,
+  X
+} from 'lucide-react';
+import Sidebar from '../components/Sidebar';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -13,7 +27,9 @@ interface Product {
   description?: string;
   category?: string;
   sizes?: string[];
+  colors?: string[];
   inventory: number;
+  imageUrl?: string;
   createdAt: string;
 }
 
@@ -29,7 +45,9 @@ export default function ProductsPage() {
     description: '',
     category: '',
     sizes: '',
-    inventory: ''
+    colors: '',
+    inventory: '',
+    imageUrl: '' as string
   });
 
   useEffect(() => {
@@ -66,7 +84,9 @@ export default function ProductsPage() {
         description: formData.description,
         category: formData.category,
         sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()) : [],
-        inventory: parseInt(formData.inventory)
+        colors: formData.colors ? formData.colors.split(',').map(c => c.trim()) : [],
+        inventory: parseInt(formData.inventory),
+        imageUrl: formData.imageUrl || null
       };
 
       if (editingProduct) {
@@ -81,7 +101,7 @@ export default function ProductsPage() {
 
       setShowAddModal(false);
       setEditingProduct(null);
-      setFormData({ name: '', price: '', description: '', category: '', sizes: '', inventory: '' });
+      setFormData({ name: '', price: '', description: '', category: '', sizes: '', colors: '', inventory: '', imageUrl: '' });
       loadProducts();
     } catch (error) {
       console.error('Error saving product:', error);
@@ -97,7 +117,9 @@ export default function ProductsPage() {
       description: product.description || '',
       category: product.category || '',
       sizes: product.sizes?.join(', ') || '',
-      inventory: product.inventory.toString()
+      colors: product.colors?.join(', ') || '',
+      inventory: product.inventory.toString(),
+      imageUrl: product.imageUrl || ''
     });
     setShowAddModal(true);
   };
@@ -117,144 +139,178 @@ export default function ProductsPage() {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('operator');
-    router.push('/login');
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Загрузка...</div>
+      <div className="flex min-h-screen bg-gray-100">
+        <Sidebar />
+        <div className="flex-1">
+          <LoadingSpinner />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              ← Назад
-            </button>
-            <h1 className="text-2xl font-bold text-gray-900">Товары</h1>
-          </div>
-          <div className="flex items-center space-x-3">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar />
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="bg-white border-b border-gray-200 px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">Товары</h2>
+              <p className="text-gray-600 mt-1">Управление каталогом товаров</p>
+            </div>
             <button
               onClick={() => {
                 setEditingProduct(null);
-                setFormData({ name: '', price: '', description: '', category: '', sizes: '', inventory: '' });
+                setFormData({ name: '', price: '', description: '', category: '', sizes: '', colors: '', inventory: '', imageUrl: '' });
                 setShowAddModal(true);
               }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="flex items-center space-x-2 px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg font-medium transition-colors"
             >
-              + Добавить товар
-            </button>
-            <button
-              onClick={logout}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              Выйти
+              <Plus className="w-4 h-4" />
+              <span>Добавить товар</span>
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto p-6">
+        <div className="p-8">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">Всего товаров</div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-gray-600">Всего товаров</div>
+              <Package className="w-5 h-5 text-indigo-600" />
+            </div>
             <div className="text-3xl font-bold text-gray-900">{products.length}</div>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">В наличии</div>
-            <div className="text-3xl font-bold text-green-600">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-gray-600">В наличии</div>
+              <TrendingUp className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div className="text-3xl font-bold text-emerald-600">
               {products.filter(p => p.inventory > 0).length}
             </div>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">Нет в наличии</div>
-            <div className="text-3xl font-bold text-red-600">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-gray-600">Нет в наличии</div>
+              <AlertCircle className="w-5 h-5 text-rose-600" />
+            </div>
+            <div className="text-3xl font-bold text-rose-600">
               {products.filter(p => p.inventory === 0).length}
             </div>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">Общая стоимость</div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-gray-600">Общая стоимость</div>
+              <DollarSign className="w-5 h-5 text-amber-600" />
+            </div>
             <div className="text-3xl font-bold text-gray-900">
-              {products.reduce((sum, p) => sum + (p.price * p.inventory), 0).toFixed(0)} ₽
+              {products.reduce((sum, p) => sum + (p.price * p.inventory), 0).toFixed(0)} сом
             </div>
           </div>
         </div>
 
         {/* Products grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {products.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${
-                  product.inventory > 10 
-                    ? 'bg-green-100 text-green-800'
-                    : product.inventory > 0
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {product.inventory} шт
-                </span>
-              </div>
-              
-              {product.description && (
-                <p className="text-sm text-gray-600 mb-3">{product.description}</p>
-              )}
-              
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Цена:</span>
-                  <span className="font-semibold text-gray-900">{product.price} ₽</span>
+            <div key={product.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group">
+              {/* Product Image */}
+              <div className="relative h-56 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
+                {product.imageUrl ? (
+                  <img 
+                    src={product.imageUrl} 
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Package className="w-16 h-16 text-slate-300" />
+                  </div>
+                )}
+                {/* Inventory Badge */}
+                <div className="absolute top-3 right-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold shadow-lg ${
+                    product.inventory > 10 
+                      ? 'bg-emerald-500 text-white'
+                      : product.inventory > 0
+                      ? 'bg-amber-500 text-white'
+                      : 'bg-rose-500 text-white'
+                  }`}>
+                    {product.inventory} шт
+                  </span>
                 </div>
-                {product.category && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Категория:</span>
-                    <span className="text-gray-900">{product.category}</span>
-                  </div>
-                )}
-                {product.sizes && product.sizes.length > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Размеры:</span>
-                    <span className="text-gray-900">{product.sizes.join(', ')}</span>
-                  </div>
-                )}
               </div>
 
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => handleEdit(product)}
-                  className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                >
-                  Редактировать
-                </button>
-                <button
-                  onClick={() => handleDelete(product.id)}
-                  className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
-                >
-                  Удалить
-                </button>
+              {/* Product Info */}
+              <div className="p-5">
+                <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 min-h-[3.5rem]">
+                  {product.name}
+                </h3>
+                
+                {product.description && (
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+                )}
+                
+                {/* Price */}
+                <div className="mb-4">
+                  <span className="text-2xl font-bold text-slate-900">{product.price} сом</span>
+                </div>
+
+                {/* Details */}
+                <div className="space-y-2 mb-4 text-sm">
+                  {product.category && (
+                    <div className="flex items-center text-gray-600">
+                      <span className="w-20 font-medium">Категория:</span>
+                      <span className="text-gray-900">{product.category}</span>
+                    </div>
+                  )}
+                  {product.sizes && product.sizes.length > 0 && (
+                    <div className="flex items-center text-gray-600">
+                      <span className="w-20 font-medium">Размеры:</span>
+                      <span className="text-gray-900">{product.sizes.join(', ')}</span>
+                    </div>
+                  )}
+                  {product.colors && product.colors.length > 0 && (
+                    <div className="flex items-center text-gray-600">
+                      <span className="w-20 font-medium">Цвета:</span>
+                      <span className="text-gray-900">{product.colors.join(', ')}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(product)}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm font-medium transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>Изменить</span>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(product.id)}
+                    className="flex items-center justify-center px-4 py-2.5 bg-rose-600 text-white rounded-lg hover:bg-rose-700 text-sm font-medium transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
 
         {products.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            Нет товаров. Добавьте первый товар!
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+            <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-600 text-lg font-medium">Нет товаров</p>
+            <p className="text-gray-500 text-sm mt-2">
+              Добавьте первый товар, чтобы начать работу
+            </p>
           </div>
         )}
       </div>
@@ -276,12 +332,12 @@ export default function ProductsPage() {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Цена (₽) *
+                  Цена (сом) *
                 </label>
                 <input
                   type="number"
@@ -289,7 +345,7 @@ export default function ProductsPage() {
                   step="0.01"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                 />
               </div>
               <div>
@@ -300,7 +356,7 @@ export default function ProductsPage() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                 />
               </div>
               <div>
@@ -311,7 +367,7 @@ export default function ProductsPage() {
                   type="text"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                 />
               </div>
               <div>
@@ -323,7 +379,19 @@ export default function ProductsPage() {
                   placeholder="S, M, L, XL"
                   value={formData.sizes}
                   onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Цвета (через запятую)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Черный, Белый, Синий"
+                  value={formData.colors}
+                  onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                 />
               </div>
               <div>
@@ -335,7 +403,62 @@ export default function ProductsPage() {
                   required
                   value={formData.inventory}
                   onChange={(e) => setFormData({ ...formData, inventory: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Изображение товара
+                </label>
+                
+                {/* Preview */}
+                {formData.imageUrl && (
+                  <div className="relative mb-3 inline-block">
+                    <img 
+                      src={formData.imageUrl} 
+                      alt="Preview" 
+                      className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                      className="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full p-1 hover:bg-rose-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Upload Widget */}
+                <CldUploadWidget
+                  uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'ml_default'}
+                  onSuccess={(result: any) => {
+                    setFormData({ ...formData, imageUrl: result.info.secure_url });
+                  }}
+                >
+                  {({ open }) => (
+                    <button
+                      type="button"
+                      onClick={() => open()}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-slate-400 hover:bg-gray-50 transition-colors"
+                    >
+                      <Upload className="w-5 h-5 text-gray-400" />
+                      <span className="text-sm text-gray-600">
+                        {formData.imageUrl ? 'Изменить изображение' : 'Загрузить изображение'}
+                      </span>
+                    </button>
+                  )}
+                </CldUploadWidget>
+                
+                <p className="text-xs text-gray-500 mt-2">
+                  Или вставьте URL изображения:
+                </p>
+                <input
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={formData.imageUrl || ''}
+                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm"
                 />
               </div>
               <div className="flex space-x-3 pt-4">
@@ -351,7 +474,7 @@ export default function ProductsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800"
                 >
                   {editingProduct ? 'Сохранить' : 'Добавить'}
                 </button>
@@ -360,6 +483,7 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -3,6 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { 
+  MessageSquare, 
+  Users, 
+  Calendar,
+  DollarSign
+} from 'lucide-react';
+import Sidebar from '../components/Sidebar';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -29,9 +37,6 @@ export default function HomePage() {
 
     setOperator(JSON.parse(operatorData));
     loadDashboardData();
-
-    const interval = setInterval(loadDashboardData, 5000);
-    return () => clearInterval(interval);
   }, [router]);
 
   const loadDashboardData = async () => {
@@ -80,90 +85,58 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-600">Загрузка...</div>
+      <div className="flex min-h-screen bg-gray-100">
+        <Sidebar />
+        <div className="flex-1">
+          <LoadingSpinner />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-gray-900 text-white flex flex-col">
-        <div className="p-6 border-b border-gray-800">
-          <h1 className="text-xl font-bold">Панель управления</h1>
-          <p className="text-sm text-gray-400 mt-1">{operator?.name || 'Оператор'}</p>
-        </div>
-
-        <nav className="flex-1 p-4">
-          <button
-            onClick={() => router.push('/home')}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg bg-gray-800 text-white mb-2"
-          >
-            <span className="text-xl">📊</span>
-            <span>Главная</span>
-          </button>
-          
-          <button
-            onClick={() => router.push('/customers')}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-300 hover:text-white mb-2"
-          >
-            <span className="text-xl">👥</span>
-            <span>Клиенты</span>
-          </button>
-
-          <button
-            onClick={() => router.push('/products')}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-300 hover:text-white mb-2"
-          >
-            <span className="text-xl">📦</span>
-            <span>Товары</span>
-          </button>
-
-          <button
-            onClick={() => router.push('/orders')}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-300 hover:text-white mb-2"
-          >
-            <span className="text-xl">🛒</span>
-            <span>Заказы</span>
-          </button>
-        </nav>
-
-        <div className="p-4 border-t border-gray-800">
-          <button
-            onClick={logout}
-            className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
-          >
-            Выйти
-          </button>
-        </div>
-      </div>
+      <Sidebar />
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         <div className="bg-white border-b border-gray-200 px-8 py-6">
-          <h2 className="text-2xl font-bold text-gray-800">Панель оператора</h2>
-          <p className="text-gray-600 mt-1">Обзор системы и активные чаты</p>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Панель оператора</h2>
+            <p className="text-gray-600 mt-1">Обзор системы и активные чаты</p>
+          </div>
         </div>
 
         <div className="p-8">
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <div className="text-sm text-gray-600 mb-2">Активные чаты</div>
+            <div className="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-gray-600">Активные чаты</div>
+                <MessageSquare className="w-5 h-5 text-indigo-600" />
+              </div>
               <div className="text-3xl font-bold text-gray-800">{stats.activeSessions}</div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <div className="text-sm text-gray-600 mb-2">Всего клиентов</div>
+            <div className="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-gray-600">Всего клиентов</div>
+                <Users className="w-5 h-5 text-emerald-600" />
+              </div>
               <div className="text-3xl font-bold text-gray-800">{stats.totalCustomers}</div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <div className="text-sm text-gray-600 mb-2">Заказов сегодня</div>
+            <div className="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-gray-600">Заказов сегодня</div>
+                <Calendar className="w-5 h-5 text-violet-600" />
+              </div>
               <div className="text-3xl font-bold text-gray-800">{stats.todayOrders}</div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <div className="text-sm text-gray-600 mb-2">Общая выручка</div>
-              <div className="text-3xl font-bold text-gray-800">{stats.totalRevenue.toFixed(0)} с</div>
+            <div className="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-gray-600">Общая выручка</div>
+                <DollarSign className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="text-3xl font-bold text-gray-800">{stats.totalRevenue.toFixed(0)} сом</div>
             </div>
           </div>
 
@@ -189,7 +162,7 @@ export default function HomePage() {
                       ID: {session.customer.id.substring(0, 8)}...
                     </p>
                   </div>
-                  <span className="px-2 py-1 bg-gray-800 text-white text-xs font-medium rounded">
+                  <span className="px-2 py-1 bg-slate-700 text-white text-xs font-medium rounded">
                     Активен
                   </span>
                 </div>
@@ -208,9 +181,10 @@ export default function HomePage() {
 
                 <button
                   onClick={() => router.push(`/chat/${session.id}`)}
-                  className="w-full px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg font-medium"
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg font-medium transition-colors"
                 >
-                  Открыть чат
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Открыть чат</span>
                 </button>
               </div>
             ))}
@@ -218,8 +192,8 @@ export default function HomePage() {
 
           {sessions.length === 0 && (
             <div className="bg-white rounded-lg shadow border border-gray-200 p-12 text-center">
-              <div className="text-gray-400 text-5xl mb-4">💬</div>
-              <p className="text-gray-600 text-lg">Нет активных чатов</p>
+              <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600 text-lg font-medium">Нет активных чатов</p>
               <p className="text-gray-500 text-sm mt-2">
                 Новые чаты появятся здесь, когда клиенты начнут общение
               </p>

@@ -3,6 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { 
+  ShoppingCart,
+  Package,
+  Truck,
+  CheckCircle,
+  XCircle,
+  Clock
+} from 'lucide-react';
+import Sidebar from '../components/Sidebar';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -104,45 +114,29 @@ export default function OrdersPage() {
     ? orders 
     : orders.filter(o => o.status === filterStatus);
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('operator');
-    router.push('/login');
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Загрузка...</div>
+      <div className="flex min-h-screen bg-gray-100">
+        <Sidebar />
+        <div className="flex-1">
+          <LoadingSpinner />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              ← Назад
-            </button>
-            <h1 className="text-2xl font-bold text-gray-900">Заказы</h1>
-          </div>
-          <button
-            onClick={logout}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
-            Выйти
-          </button>
-        </div>
-      </div>
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar />
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto p-6">
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="bg-white border-b border-gray-200 px-8 py-6">
+          <h2 className="text-2xl font-bold text-gray-800">Заказы</h2>
+          <p className="text-gray-600 mt-1">Управление заказами клиентов</p>
+        </div>
+
+        <div className="p-8">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
@@ -248,7 +242,7 @@ export default function OrdersPage() {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-semibold text-gray-900">{order.totalAmount} ₽</div>
+                    <div className="text-sm font-semibold text-gray-900">{order.totalAmount} сом</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[order.status]}`}>
@@ -330,14 +324,14 @@ export default function OrdersPage() {
                         Количество: {item.quantity}
                       </p>
                     </div>
-                    <p className="font-semibold text-gray-900">{item.priceAtOrder * item.quantity} ₽</p>
+                    <p className="font-semibold text-gray-900">{item.priceAtOrder * item.quantity} сом</p>
                   </div>
                 ))}
               </div>
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold text-gray-900">Итого:</span>
-                  <span className="text-2xl font-bold text-gray-900">{selectedOrder.totalAmount} ₽</span>
+                  <span className="text-2xl font-bold text-gray-900">{selectedOrder.totalAmount} сом</span>
                 </div>
               </div>
             </div>
@@ -391,6 +385,7 @@ export default function OrdersPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

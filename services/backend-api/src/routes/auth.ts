@@ -37,7 +37,7 @@ router.post('/login', asyncHandler(async (req, res) => {
   }
 
   const token = jwt.sign(
-    { id: operator.id, username: operator.username },
+    { id: operator.id, username: operator.username, role: operator.role },
     secret,
     { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
   );
@@ -47,7 +47,8 @@ router.post('/login', asyncHandler(async (req, res) => {
     operator: {
       id: operator.id,
       username: operator.username,
-      name: operator.name
+      name: operator.name,
+      role: operator.role
     }
   });
 }));
@@ -65,6 +66,7 @@ router.get('/me', authenticate, asyncHandler(async (req: AuthRequest, res) => {
       id: true,
       username: true,
       name: true,
+      role: true,
       isActive: true,
       createdAt: true
     }

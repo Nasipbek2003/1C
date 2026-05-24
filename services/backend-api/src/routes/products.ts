@@ -56,7 +56,9 @@ const createProductSchema = z.object({
   description: z.string().optional(),
   category: z.string().optional(),
   sizes: z.array(z.string()).optional(),
-  inventory: z.number().int().min(0)
+  colors: z.array(z.string()).optional(),
+  inventory: z.number().int().min(0),
+  imageUrl: z.string().optional().nullable()
 });
 
 // Create new product
@@ -71,7 +73,9 @@ router.post('/', authenticate, asyncHandler(async (req, res) => {
       description: data.description,
       category: data.category,
       sizes: data.sizes || [],
+      colors: data.colors || [],
       inventory: data.inventory,
+      imageUrl: data.imageUrl,
       lastSyncedAt: new Date()
     }
   });
@@ -86,7 +90,9 @@ const updateProductSchema = z.object({
   description: z.string().optional(),
   category: z.string().optional(),
   sizes: z.array(z.string()).optional(),
-  inventory: z.number().int().min(0).optional()
+  colors: z.array(z.string()).optional(),
+  inventory: z.number().int().min(0).optional(),
+  imageUrl: z.string().optional().nullable()
 });
 
 // Update product
