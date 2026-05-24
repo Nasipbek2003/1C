@@ -13,7 +13,8 @@
     "dev:bot": "npm run dev --workspace=services/telegram-bot",
     "dev:api": "npm run dev --workspace=services/backend-api",
     "dev:web": "npm run dev --workspace=apps/web-interface",
-    "build": "npm run build --workspaces",
+    "build": "npm run build --workspace=apps/web-interface",
+    "build:all": "npm run build --workspaces",
     "db:generate": "npm run db:generate --workspace=services/backend-api",
     "db:push": "npm run db:push --workspace=services/backend-api",
     "db:migrate": "npm run db:migrate --workspace=services/backend-api"
