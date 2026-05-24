@@ -1,6 +1,8 @@
 {
-  "buildCommand": "cd apps/web-interface && npm install && npm run build",
+  "buildCommand": "cd apps/web-interface && npm run build",
   "outputDirectory": "apps/web-interface/.next",
   "framework": "nextjs",
-  "installCommand": "npm install --prefix apps/web-interface"
+  "installCommand": "cd apps/web-interface && npm install",
+  "devCommand": "cd apps/web-interface && npm run dev",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./apps/web-interface"
 }

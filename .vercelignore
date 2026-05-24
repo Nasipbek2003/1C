@@ -1,0 +1,22 @@
+# Ignore services that shouldn't be deployed to Vercel
+services/telegram-bot
+services/backend-api
+services/1c-integration
+
+# Ignore node_modules
+node_modules
+**/node_modules
+
+# Ignore build artifacts
+dist
+build
+*.log
+
+# Ignore environment files
+.env
+.env.local
+.env.*.local
+
+# Ignore git
+.git
+.gitignore
