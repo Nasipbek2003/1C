@@ -243,6 +243,51 @@ init-database.bat
 
 ## 🚀 Развертывание
 
+### Vercel (Web Interface)
+
+Веб-интерфейс можно развернуть на Vercel:
+
+1. **Подключите репозиторий к Vercel:**
+   - Зайдите на [vercel.com](https://vercel.com)
+   - Импортируйте ваш GitHub репозиторий
+   - Vercel автоматически определит Next.js проект
+
+2. **Настройте переменные окружения в Vercel:**
+   ```
+   NEXT_PUBLIC_API_URL=https://your-backend-api.com
+   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
+   NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_preset
+   ```
+
+3. **Деплой:**
+   - Vercel автоматически деплоит при каждом push в main
+   - Используется конфигурация из `vercel.json`
+   - Собирается только `apps/web-interface`
+
+**Примечание:** Backend API и Telegram Bot нужно развернуть отдельно (например, на Railway, Render или VPS).
+
+### Railway/Render (Backend API)
+
+Backend API можно развернуть на Railway или Render:
+
+1. **Создайте новый сервис**
+2. **Подключите репозиторий**
+3. **Настройте переменные окружения:**
+   ```
+   DATABASE_URL=postgresql://...
+   JWT_SECRET=your_secret_key
+   BOT_API_URL=http://localhost:3001
+   PORT=3001
+   ```
+4. **Установите команду запуска:**
+   ```bash
+   cd services/backend-api && npm install && npx prisma generate && npm start
+   ```
+
+### VPS (Полная система)
+
+Для развертывания всей системы на VPS:
+
 ### Production
 
 1. Установите переменные окружения для production
